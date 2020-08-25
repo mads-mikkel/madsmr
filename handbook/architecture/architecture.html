@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arkitektur</title>
+</head>
+
+<body>
+    <p>
+        Det er hensigtsmæssigt at anvende følgende arkitektur i en solution, der har en brugergrænseflade med
+        databaseadgang:
+    </p>
+    <ul>
+        <li>
+            WPF Application/ASP.NET MVC Web Application projekt der har til ansvar at repræsentere den grafiske
+            brugerflade (Graphical User Interface) som brugeren interagerer med.
+        </li>
+        <li>
+            Class Library projekt til der har til ansvar at give applikationen databaseadgang, hvor eksempelvis
+            Repositories befinder sig.
+        </li>
+        <li>
+            Class Library projekt til domænemodellen (entiteterne), der har til ansvar at repræsentere
+            forretningsdomænet.
+        </li>
+    </ul>
+    <p>
+        Der kan være flere projekter ud over disse. Projekterne referer til hinanden på følgende måde:
+    </p>
+    <p>
+        Projektet med et entry point (f.eks. Main metoden) har referencer til projektet med domænemodellen og til
+        projektet
+        med databaseadgang. Projektet med databaseadgang har reference til projektet med domænemodellen. Lad os kigge
+        nærmere på disse Separations of Concerns (SoC):
+    </p>
+    <img src="arch01.png" />
+    <p>
+        Som vi ser på figuren opdeles systemet i tre dele. Lad os se på hvordan vi virkeliggør dette i Visual Studio:
+    </p>
+    <img src="arch02.png" />
+    <p>
+        På figuren vises to klassebiblioteker (røde) der har til formål at understøtte selve applikationen (gul). Nu
+        skal vi se på hvordan projekterne skal referere til hinanden:
+    </p>
+    <img src="arch03.png" />
+    <p>
+        Bemærk hvordan pilene mellem projekterne nu kun peger én vej. Dette er referencerne mellem projekterne, og se at
+        der også er et using statement inden i pilene. Der er også tilføjet en database. </p>
+    <p>
+        Du finder et eksempel på en sådan arkitektur på: <a href="https://github.com/mads-mikkel/S3.Northwind">github.com/mads-mikkel/S3.Northwind</a>.
+    </p>
+</body>
+</html>
