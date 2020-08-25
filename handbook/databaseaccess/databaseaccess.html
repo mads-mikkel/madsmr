@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tilgang til database</title>
+</head>
+
+<body>
+    <h2>Tilgang til database</h2>
+    <p>
+        Her beskrives tre forskellige måder at forbinde til en Microsoft SQL Database på. Først vises det hvordan man
+        forbinder med SqlClient, dernæst ADO.NET og til slut EntityFramework. Under hvert punkt gennemgås det hvordan
+        man henter data, samt tilføjer data.
+    </p>
+    <ol>
+        <li>.NET Framework: System.Data.SqlClient</li>
+        <li>.NET Core: Microsoft.Data.SqlClient</li>
+    </ol>
+    <p>
+        Men C# koden der skal anvendes er den samme – bortset fra using statements øverst i kodefilen.
+    </p>
+
+    <h3>Med SqlClient</h3>
+    <p>
+        SqlClient namespace indeholder klasser til at få adgang til en Microsoft SQL Server og til at manipulere med
+        databaser og data heri.
+    </p>
+
+    <h4>I .NET Framework</h4>
+    <p>
+        System.Data.SqlClient namespace er inkluderet i den installerede version af .NET Framework. Hvis ikke projektet
+        der skal have adgang til databasen allerede har en reference til System.Data, skal den blot tilføjes.
+    </p>
+
+    <h4>I .NET Core</h4>
+    <p>
+        Installér Microsoft.Data.SqlClient NuGet i det projekt der skal have adgang til databasen.
+    </p>
+
+    <h4>Hent alle ansatte med SqlClient</h4>
+    <p>
+        I denne fremgangsmåde beskrives det hvordan man laver en klasse der kan lave CRUD operationer. Som eksempel
+        anvendes
+        Northwind ansatte. Først laves et repository der kan hente alle ansatte fra databasen, ved brug af SqlClient.
+    </p>
+
+    <ol>
+        <li>
+            <p>Lav en class EmployeeRepository og lav en konstant til at indeholde connection string til Northwind
+                databasen:</p>
+            <img src="dbacc01.png" />
+        </li>
+        <li>
+            <p>Næste skridt er at finde ud af, hvad connection strengen er. Dette gøres ved:</p>
+            <ol type="a">
+                <li>View menupunkt ></li>
+                <li>SQL Server Object Explorer ></li>
+                <li>udvid SQL Server ></li>
+                <li>udvid (localdb)\MSSQLLocalDB ></li>
+                <li>udvid Databases ></li>
+                <li>udvid Northwind databasen ></li>
+                <li>Markér Northwind databasen ></li>
+                <li>Tryk F4 for at åbne Properties vinduet ></li>
+                <li>Find Connection string attributten og kopiér værdien til udklipsholder ></li>
+                <li>
+                    <p>Sæt ind i konstantens værdi:</p>
+                    <img src="dbacc02.png"/>
+                </li>
+            </ol>
+        </li>
+        <li>
+            <p>Nu skal der laves en klasse der repræsenterer en Northwind ansat i forretningsdomænet:</p>
+            <img src="dbacc03.png" />
+            <p>Bemærk at ikke alle attributter fra tabellen Employees er medtaget.</p>
+        </li>
+        <li>
+            <p>Nu skal der laves en metode i <code>EmployeeRepository</code> klassen, der har til ansvar at levere en liste af alle ansatte til kalderen. Start med at erklære metoden:</p>
+            <img src="dbacc04.png" />
+            <p>Der laves en ny tom liste som returneres. Vær opmærksom på to ting: linje 22 bliver til kode, der henter data fra databasen og gemmer det som Employee objekter i listen. Vær også opmærksom på, at hvis der ikke er nogen rækker i Employees tabellen i databasen, returneres en tom liste til kalderen – det genereres derved ikke en fejl, hvis ikke der findes noget i tabellen.</p>
+        </li>
+        <li>
+            <p>Lav nu det SQL statement der skal eksekveres på databasen:</p>
+            <img src="dbacc05.png"/>
+        </li>
+        <li>
+            <p>For at oprette forbindelse til databasen på serveren, skal der anvendes et objekt af SqlConnection (Husk et using statment øverst i filen til Microsoft/System.Data.SqlClient. Dette objekt skal initialiseres med den konstanten connectionString:</p>
+            <img src="dbacc06.png"/>
+        </li>
+        <li>
+            <p>Inden forbindelsen åbnes, laves et SqlCommand objekt. Den har til formål at eksekvere et SQL statement over en given forbindelse. Defor skal et SqlCommand objekt initialiseres med både det SQL statement der skal eksekveres, samt SqlConnection objektet:</p>
+            <img src="dbacc07.png"/>
+        </li>
+        <li>
+            <p>Forbindelsen åbnes:</p>
+            <img src="dbacc08.png"/>
+        </li>
+        <li>
+            <p>For at eksekvere et SQL statement på serveren, skal command.ExecuteReader() kaldes, og denne metode returnerer et SqlDataReader objekt, med de pågældende data fra databasen:</p>
+            <img src="dbacc09.png">
+        </li>
+        <li>
+            <p>Forbindelsen må ikke lukkes før vi er færdige med at lave de returnerede data om til Employee objekter. Der findes flere forskellige måder og her vises to. Til begge måder anvendes en while løkke, hvor betingelsen er at reader.Read() er true. Først ved anvendelse af indexer på reader objektet, hvor argumentet til indexeren er kolonnenavnet:</p>
+            <img src="dbacc10.png"/>
+        </li>
+        <li>
+            <p>Den anden metode benytter sig af GetFieldValue<T>(int i) metoden på reader objektet. Typeargumentet T er den type værdien skal castes til. Argumentet i er kolonnenummeret i det resultset der returneres – heri er kolonerne nummeret efter rækkefølgen i det SQL statement der skal eksekveres:</p>
+        <img src="dbacc11.png"/>
+            </li>
+        <li>
+            <p>Nu kan forbindelsen lukkes og listen returneres:</p>
+            <img src="dbacc12.png"/>
+        </li>
+    </ol>
+
+    <h4>Gem ny ansat med <code>SqlClient</code></h4>
+    <p>Her demonstreres det hvordan man ved anvendelse af SqlClient indsætter en ny række i en tabel, eksemplificeret ved en ansat i Northwind databasen:</p>
+    <img src="dbacc13.png"/>
+    <p>Bemærk at samme princip benyttes når der skal oprettes forbindelse og eksekveres et SQL statement. Forskellen er her, at ExecuteNonQuery() kaldes på command objektet. Denne metode skal også kaldes ved UPDATE og DELETE SQL statements. Bemærk også argumentet til ToString metoden på de to DateTime properties, s. Dette argument giver en standard strengformatering af datoen, som SQL Server kan omdanne til en SQL datetime datatype. Når du selv skal lave databaser, så sørg for at benytte SQL datetime2 datatypen i stedet, dette anbefaler Microsoft. Den grønne squiggly under SqlCommand constructoren indikerer blot at der kan forekomme sikkerhedsrisici. Det er OK indtil videre at ignorere dette. </p>
+
+    <h3>Med ADO.NET</h3>
+    <p>ActiveX Data Objects (ADO.NET) er en teknologi der sørger for en nem måde at kommunikere data frem og tilbage mellem program og database. Teknologien anvender underliggende SqlClient til at indlæse rækker fra tabeller. Disse rækker har typen DataRow og herfra skal man udtrække data til entiteter, på samme måde som SqlClient. En DataRow er en del af et DataTable. Der kan være mange DataRow objekter i et DataTable objekt. Et DataTable er en del af et DataSet. Der kan være mange DataTable objekter i et DataSet.</p>
+    <p>Det kan godt være lidt uoverskueligt – idéen er at man laver kodegenbrug, ved kun at have én metode der sørger for alle transaktioner med databasen. Denne metode hedder Execute(query) og skal laves i en klasse der hedder Executor:</p>
+
+    <h4>Hent alle ansatte med ADO.NET</h4>
+    <img src="dbacc14.png"/>
+    <p>Klassen Executor har til formål at eksponere forskellige måder at eksekverer forespørgsler (queries) på databasen. Der er kun én måde her, nemlig gennem metoden Execute(). Denne metode modtager et SQL query i en string som argument til parameteren query. I linje 15 og 16 laves hhv. et DataSet objekt og et SqlConnection objekt. Variablen resultSet er central her, da den kommer til at indeholde de returnerede data fra databasen. For at få data i resultSet (linje 20), skal der laves det der står i line 18. Det er ikke vigtigt hvad det betyder, det er derimod vigtigere at man forstår at håndtere et DataSet objekt. Og dette gøre fra et Repository:</p>
+    <img src="dbacc15.png"/>
+    <p>Se linje 18 og 19: Her laves et objekt af Executor og Execute metoden kaldes med argumentet, der er en variabel erklæret i linje 13. Når resultSet variablen har fået dens data fra databasen er det gemt i førnævnte DataRows, i et DataTable. For at få data ud af hver DataRow og lave et Employee objekt, benyttes en Extractor:</p>
+    <img src="dbacc16.png"/>
+    <p>Metoden ExtractEmployeeFrom(dataRow) har til formål at udpakke data fra parameteren dataRow, og derefter lave et Employee objekt og returnere det til kalderen – her GetAllEmployees metoden i Repository klassen.</p>
+
+    <h4>Gem ny ansat med ADO.NET</h4>
+    <p>Nu hvor vi anvender kodegenbrug er det ret enkelt at lave funktionalitet til at gemme en ny ansat. Vi laver en metode i Repository klassen der modtager et Employee objekt:</p>
+    <img src="dbacc17.png"/>
+    <p>Vi ser, at det eneste der laves er et query som blot sendes til Execute metoden på executor objektet. Der bliver returneret et DataSet, men det er ikke nødvendigt at gemme i en variabel, da der kastes en exception fra Fill metoden i Exceute metoden, hvis transaktionen ikke lykkedes.</p>
+</body>
+
+</html>
